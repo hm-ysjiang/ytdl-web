@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoutubeDL - {{vtitle}}</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <script src="{{url_for('static', filename='js/vid.js')}}"></script>
+    <script>
+        function error_redirect(msg) {
+            alert(msg)
+            window.location.replace('/')
+        }
+    </script>
+    <style>
+        .btn {
+            width: 150px;
+        }
+
+        .btn-dl {
+            color: white !important;
+        }
+    </style>
+</head>
+
+<body>
+    <script>{{errhandle|safe}}</script>
+
+    <div style="width:fit-content; margin: 0 auto;">
+        <div style="margin-top: 25px; text-align: center;">
+            <h2>{{vtitle}}</h1>
+                <img src="{{vimg}}">
+                <div id="action-btn" vid={{vid}} style="margin-top: 10px; text-align: center;">
+                    <button id="btn-convert" type="button" class="btn btn-primary btn-lg"
+                        style="display: none;">Convert</button>
+                    <button id="btn-converting" type="button" class="btn btn-primary btn-lg" style="display: none;"
+                        disabled>Converting...</button>
+                    <a id="btn-download" class="btn btn-success btn-lg btn-dl" style="display: none;"
+                        href="/dl/{{vid}}">Download</a>
+                </div>
+        </div>
+    </div>
+</body>
+
+</html>

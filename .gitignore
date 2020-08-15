@@ -1,0 +1,6 @@
+__pycache__/*
+.venv/*
+.vscode/*
+temp/converting/*
+temp/file/*
+activate

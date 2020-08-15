@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoutubeDL</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+</head>
+
+<body>
+    <div style="width: fit-content; margin: 0 auto;">
+        <div style="margin-top: 75px;">
+            <form id="vidreq" action="/vidreq" method="post">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">https://www.youtube.com/watch?v=</span>
+                    </div>
+                    <input type="text" class="form-control" id="vid" name="vid">
+                    <div class="input-group-append">
+                        <button class="btn btn-secondary" type="submit">Go</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('vidreq').addEventListener('submit', evt => {
+            vid = document.getElementById('vid')
+            _ = vid.value.search('&')
+            if (_ >= 0)
+                vid.value = vid.value.substr(0, _)
+            if (vid.value == '')
+                evt.preventDefault()
+        })
+    </script>
+</body>
+
+</html>
