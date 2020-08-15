@@ -64,4 +64,8 @@ def download(vid):
 
 if __name__ == '__main__':
     path = os.path.dirname(os.path.realpath(__file__))
+    if not os.path.isdir(path + '/temp/file/'):
+        os.makedirs(path + '/temp/file/')
+    if not os.path.isdir(path + '/temp/converting/'):
+        os.makedirs(path + '/temp/converting/')
     app.run(host='0.0.0.0', port=8888)
