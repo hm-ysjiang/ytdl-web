@@ -6,17 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YoutubeDL</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <script src="{{url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
+    <style>
+        .form-control {
+            border-radius: 0 !important;
+        }
+    </style>
 </head>
 
 <body>
     <div style="width: fit-content; margin: 0 auto;">
         <div style="margin-top: 75px;">
-            <form id="vidreq" action="/vidreq" method="post">
+            <form id="vidreq" action="/vreq" method="get">
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">https://www.youtube.com/watch?v=</span>
                     </div>
                     <input type="text" class="form-control" id="vid" name="vid">
+                    <div class="input-group-prepend">
+                        <select class="form-control" id="ext" name="ext">
+                            <option value="mp3">MP3</option>
+                            <option value="mp4">MP4</option>
+                        </select>
+                    </div>
                     <div class="input-group-append">
                         <button class="btn btn-secondary" type="submit">Go</button>
                     </div>
@@ -26,8 +38,9 @@
     </div>
 
     <script>
-        document.getElementById('vidreq').addEventListener('submit', evt => {
-            vid = document.getElementById('vid')
+        $('#vidreq').submit(function (evt) {
+            vid = $('#vid')[0]
+            vid.value = vid.value.trim()
             _ = vid.value.search('&')
             if (_ >= 0)
                 vid.value = vid.value.substr(0, _)

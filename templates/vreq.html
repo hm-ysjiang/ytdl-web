@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YoutubeDL - {{vtitle}}</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
-    <script src="{{url_for('static', filename='js/vid.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jquery-3.4.1.min.js')}}"></script>
     <script>
         function error_redirect(msg) {
             alert(msg)
@@ -31,16 +31,18 @@
         <div style="margin-top: 25px; text-align: center;">
             <h2>{{vtitle}}</h1>
                 <img src="{{vimg}}">
-                <div id="action-btn" vid={{vid}} style="margin-top: 10px; text-align: center;">
+                <div id="action-btn" vid={{vid}} ext={{ext}} style="margin-top: 10px; text-align: center;">
                     <button id="btn-convert" type="button" class="btn btn-primary btn-lg"
                         style="display: none;">Convert</button>
                     <button id="btn-converting" type="button" class="btn btn-primary btn-lg" style="display: none;"
                         disabled>Converting...</button>
                     <a id="btn-download" class="btn btn-success btn-lg btn-dl" style="display: none;"
-                        href="/dl/{{vid}}">Download</a>
+                        href="/download/{{ext}}?vid={{vid}}">Download</a>
                 </div>
         </div>
     </div>
+
+    <script src="{{url_for('static', filename='js/vreq.js')}}"></script>
 </body>
 
 </html>
