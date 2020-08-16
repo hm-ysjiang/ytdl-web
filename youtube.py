@@ -25,7 +25,7 @@ def get_opts(vid, ext):
                 }
             ]
         }
-    else:   # mp3
+    elif ext == 'mp3':
         return {
             'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
             'format': 'bestaudio/best',
@@ -52,12 +52,16 @@ def run():
     global path
     path = os.path.dirname(os.path.realpath(__file__))
     while True:
+        sem.acquire()
         try:
             if jobq.qsize():
                 lck.acquire()
                 vid, ext, url = jobq.get()
                 lck.release()
-                with youtube_dl.YoutubeDL(get_opts(vid, ext)) as ytdl:
+                opts = get_opts(vid, ext)
+                if not opts:
+                    continue
+                with youtube_dl.YoutubeDL(opts) as ytdl:
                     ytdl.download([url])
                 logging.info(f'Download complete - {vid}.{ext}')
                 os.remove(f'{path}/output/converting/{ext}/{vid}')
@@ -66,6 +70,7 @@ def run():
 
 
 lck = threading.Lock()
+sem = threading.Semaphore(0)
 jobq = queue.Queue()
 dl_thread = threading.Thread(target=run)
 dl_thread.start()
@@ -117,5 +122,6 @@ def validatevid(vid):
 def startDL(vid, ext):
     lck.acquire()
     jobq.put((vid, ext, f'https://www.youtube.com/watch?v={vid}'))
+    sem.release()
     lck.release()
     logging.info(f'Added to download queue - {vid}.{ext}')

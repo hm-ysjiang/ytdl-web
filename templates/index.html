@@ -25,8 +25,7 @@
                     <input type="text" class="form-control" id="vid" name="vid">
                     <div class="input-group-prepend">
                         <select class="form-control" id="ext" name="ext">
-                            <option value="mp3">MP3</option>
-                            <option value="mp4">MP4</option>
+                            {{ext_opts|safe}}
                         </select>
                     </div>
                     <div class="input-group-append">
