@@ -1,7 +1,14 @@
 import os
 
 
-def ensure_output_directory(path, exts):
+def reset_output_directory(path, exts):
+    if os.path.isdir(path + '/output'):
+        for root, dirs, files in os.walk(path + '/output', topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+
     for ext in exts:
         if not os.path.isdir(path + '/output/file/' + ext):
             os.makedirs(path + '/output/file/' + ext)

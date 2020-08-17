@@ -1,6 +1,7 @@
 import logging
 import os
 import queue
+import recycle
 import threading
 import youtube_dl
 
@@ -64,9 +65,14 @@ def run():
                 with youtube_dl.YoutubeDL(opts) as ytdl:
                     ytdl.download([url])
                 logging.info(f'Download complete - {vid}.{ext}')
+
+                recycle.DOWNLOAD_LCK.acquire()
+                recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
+                recycle.DOWNLOAD_LCK.release()
+
                 os.remove(f'{path}/output/converting/{ext}/{vid}')
         except Exception as e:
-            logging.info(e)
+            logging.exception(e)
 
 
 lck = threading.Lock()
@@ -84,7 +90,7 @@ _ytdl = youtube_dl.YoutubeDL({
     'noplaylist': True
 })
 DURATION_LIMIT = 600
-SUPPORTTED_EXT = ('mp3', 'mp4')
+SUPPORTED_EXT = ('mp3', 'mp4')
 
 
 def validatevid(vid):

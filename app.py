@@ -1,6 +1,7 @@
 from flask import *
 import logging
 import os
+import recycle
 import utility
 import youtube
 
@@ -17,7 +18,8 @@ path = ''
 
 @app.route('/')
 def root():
-    return render_template('index.html', ext_opts=ext_opts)
+    vid = request.args.get('vid')
+    return render_template('index.html', ext_opts=ext_opts, vid=(vid if vid else ''))
 
 
 @app.route('/script')
@@ -29,7 +31,7 @@ def script():
 def vreq():
     vid = request.args.get('vid')
     ext = request.args.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTTED_EXT:
+    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
         abort(404)
 
     vdata = youtube.validatevid(vid)
@@ -42,7 +44,7 @@ def vreq():
 def check_file():
     vid = request.form.get('vid')
     ext = request.form.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTTED_EXT:
+    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
         abort(404)
 
     if (os.path.isdir(f'{path}/output/file/{ext}/{vid}')):
@@ -54,7 +56,7 @@ def check_file():
 def check_converting():
     vid = request.form.get('vid')
     ext = request.form.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTTED_EXT:
+    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
         abort(404)
 
     if (os.path.isfile(f'{path}/output/converting/{ext}/{vid}')):
@@ -66,7 +68,7 @@ def check_converting():
 def start_convert():
     vid = request.form.get('vid')
     ext = request.form.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTTED_EXT:
+    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
         abort(404)
 
     if (os.path.isfile(f'{path}/output/converting/{ext}/{vid}')):
@@ -79,20 +81,26 @@ def start_convert():
 @app.route('/download/<ext>')
 def download(ext):
     vid = request.args.get('vid')
-    if not vid or not ext or ext not in youtube.SUPPORTTED_EXT:
+    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
         abort(404)
     
     vidpath = f'{path}/output/file/{ext}/{vid}'
+    recycle.DOWNLOAD_LCK.acquire()
     if (os.path.isdir(vidpath)):
         files = next(os.walk(vidpath))[2]
         if len(files):
             filename = files[0]
+            recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
+            recycle.DOWNLOAD_LCK.release()
+            logging.info(f'Updated file lifetime - {vid}.{ext}')
             return send_file(vidpath + '/' + filename, as_attachment=True)
-    return abort(404)
+    recycle.DOWNLOAD_LCK.release()
+    return redirect(url_for('vreq', vid=vid, ext=ext))
 
 
 if __name__ == '__main__':
     path = os.path.dirname(os.path.realpath(__file__))
-    utility.ensure_output_directory(path, youtube.SUPPORTTED_EXT)
-    ext_opts = utility.get_ext_opts(youtube.SUPPORTTED_EXT)
+    utility.reset_output_directory(path, youtube.SUPPORTED_EXT)
+    recycle.startGC()
+    ext_opts = utility.get_ext_opts(youtube.SUPPORTED_EXT)
     app.run(host='0.0.0.0', port=8888)
