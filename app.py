@@ -32,7 +32,7 @@ def vreq():
     vid = request.args.get('vid')
     ext = request.args.get('ext')
     if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
-        abort(404)
+        abort(400)
 
     vdata = youtube.validatevid(vid)
     if vdata['ok']:
@@ -40,50 +40,43 @@ def vreq():
     return render_template('vreq.html', errhandle=f'error_redirect("{vdata["err"]}")')
 
 
-@app.route('/checkfile', methods=['POST'])
-def check_file():
+@app.route('/post', methods=['POST'])
+def post():
+    action = request.form.get('action')
     vid = request.form.get('vid')
     ext = request.form.get('ext')
     if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
-        abort(404)
-
-    if (os.path.isdir(f'{path}/output/file/{ext}/{vid}')):
+        abort(400)
+    elif action == 'file':            # Check if the file requested already exists
+        if os.path.isdir(f'{path}/output/file/{ext}/{vid}'):
+            return ''
         return '1'
-    return ''
-
-
-@app.route('/checkconverting', methods=['POST'])
-def check_converting():
-    vid = request.form.get('vid')
-    ext = request.form.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
-        abort(404)
-
-    if (os.path.isfile(f'{path}/output/converting/{ext}/{vid}')):
+    elif action == 'convert':       # Check if the file requested is converting
+        if os.path.isfile(f'{path}/output/converting/{ext}/{vid}'):
+            return ''
         return '1'
-    return ''
-
-
-@app.route('/start', methods=['POST'])
-def start_convert():
-    vid = request.form.get('vid')
-    ext = request.form.get('ext')
-    if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
-        abort(404)
-
-    if (os.path.isfile(f'{path}/output/converting/{ext}/{vid}')):
-        return ''
-    open(f'{path}/output/converting/{ext}/{vid}', 'w').close()
-    youtube.startDL(vid, ext)
-    return '1'
+    elif action == 'start':         # Request a convertion of the file
+        if not os.path.isfile(f'{path}/output/converting/{ext}/{vid}'):
+            open(f'{path}/output/converting/{ext}/{vid}', 'w').close()
+            youtube.startDL(vid, ext)
+            return ''
+        return '1'
+    elif action == 'complete':      # Check if a requested convertion has completed
+        if os.path.isfile(f'{path}/output/converting/{ext}/{vid}'):
+            return ''
+        elif os.path.isdir(f'{path}/output/file/{ext}/{vid}'):
+            return 'complete'
+        return 'error'
+    else:
+        abort(400)
 
 
 @app.route('/download/<ext>')
 def download(ext):
     vid = request.args.get('vid')
     if not vid or not ext or ext not in youtube.SUPPORTED_EXT:
-        abort(404)
-    
+        abort(400)
+
     vidpath = f'{path}/output/file/{ext}/{vid}'
     recycle.DOWNLOAD_LCK.acquire()
     if (os.path.isdir(vidpath)):

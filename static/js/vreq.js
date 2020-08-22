@@ -1,60 +1,74 @@
 (function () {
-    var vid
-    var ext
+    const vid = $('#action-btn').attr('vid')
+    const ext = $('#action-btn').attr('ext')
 
-    function checkConverting() {
-        $.post('/checkconverting', {
-            vid: vid, ext: ext
+    function showButton(btn) {
+        $('#btn-convert').css('display', 'none')
+        $('#btn-converting').css('display', 'none')
+        $('#btn-download').css('display', 'none')
+        $('#btn-' + btn).css('display', 'inline-block')
+    }
+
+    function checkConvert() {
+        $.post('/post', {
+            action: 'convert', vid: vid, ext: ext
         }, function (res) {
             if (res.length) {
-                $('#btn-download').css('display', 'inline-block')
-                setTimeout(pendforfile, 5000)
+                checkHasFile()
             }
             else {
-                checkHasFile()
+                showButton('download')
+                setTimeout(checkComplete, 5000)
             }
         })
     }
 
     function checkHasFile() {
-        $.post('/checkfile', {
-            vid: vid, ext: ext
+        $.post('/post', {
+            action: 'file', vid: vid, ext: ext
         }, function (res) {
             if (res.length) {
-                $('#btn-download').css('display', 'inline-block')
+                showButton('convert')
             }
             else {
-                $('#btn-convert').css('display', 'inline-block')
+                showButton('download')
             }
         })
     }
 
-    function pendforfile() {
-        $.post('/checkconverting', {
-            vid: vid, ext: ext
+    function checkComplete() {
+        $.post('/post', {
+            action: 'complete', vid: vid, ext: ext
         }, function (res) {
             if (res.length) {
-                setTimeout(pendforfile, 2500)
+                switch (res) {
+                    case 'complete':
+                        showButton('download')
+                        break;
+                    case 'error':
+                        alert('An error occurred on server side. Please try again later, or contact the service provider.')
+                        window.location.replace('/')
+                        break;
+                }
             }
             else {
-                $('#btn-converting').css('display', 'none')
-                $('#btn-download').css('display', 'inline-block')
+                setTimeout(checkComplete, 2500)
             }
         })
     }
 
-    vid = $('#action-btn').attr('vid')
-    ext = $('#action-btn').attr('ext')
     $('#btn-convert').click(function (evt) {
-        $.post('/start', {
-            vid: vid, ext: ext
+        $.post('/post', {
+            action: 'start', vid: vid, ext: ext
         }, function (res) {
             if (res.length) {
-                $('#btn-convert').css('display', 'none')
-                $('#btn-converting').css('display', 'inline-block')
-                setTimeout(pendforfile, 5000)
+                showButton('download')
+            }
+            else {
+                showButton('converting')
+                setTimeout(checkComplete, 5000)
             }
         })
     })
-    checkConverting()
+    checkConvert()
 })()

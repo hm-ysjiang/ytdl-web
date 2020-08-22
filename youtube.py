@@ -59,8 +59,9 @@ def get_opts(vid, ext):
 
 
 def download(jobinfo):
+    global path
+    vid, ext, url = jobinfo
     try:
-        vid, ext, url = jobinfo
         opts = get_opts(vid, ext)
         if not opts:
             return
@@ -70,11 +71,20 @@ def download(jobinfo):
 
         recycle.DOWNLOAD_LCK.acquire()
         recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
-        recycle.DOWNLOAD_LCK.release()
-
-        os.remove(f'{path}/output/converting/{ext}/{vid}')
     except Exception as e:
         logging.exception(e)
+
+        recycle.DOWNLOAD_LCK.acquire()
+        lifemap.pop(k)
+        vidpath = f'{path}/output/file/{ext}/{vid}'
+        try:
+            os.remove(f'{vidpath}/{next(os.walk(vidpath))[2][0]}')
+            os.rmdir(f'{vidpath}')
+        except Exception as e2:
+            logging.exception(e2)
+    finally:
+        os.remove(f'{path}/output/converting/{ext}/{vid}')
+        recycle.DOWNLOAD_LCK.release()
 
 
 threadexecuter = ThreadPoolExecutor(max_workers=MAX_WORKERTHREADS)
