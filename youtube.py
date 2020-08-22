@@ -1,15 +1,20 @@
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import queue
 import recycle
-import threading
 import youtube_dl
 
-path = None
 
-#
-# Multi-thread download
-#
+DURATION_LIMIT = 600
+SUPPORTED_EXT = ('mp3', 'mp4')
+MAX_WORKERTHREADS = 10
+
+
+path = os.path.dirname(os.path.realpath(__file__))
+_ytdl = youtube_dl.YoutubeDL({
+    'noplaylist': True
+})
 
 
 def get_opts(vid, ext):
@@ -48,49 +53,35 @@ def get_opts(vid, ext):
             ]
         }
 
-
-def run():
-    global path
-    path = os.path.dirname(os.path.realpath(__file__))
-    while True:
-        sem.acquire()
-        try:
-            if jobq.qsize():
-                lck.acquire()
-                vid, ext, url = jobq.get()
-                lck.release()
-                opts = get_opts(vid, ext)
-                if not opts:
-                    continue
-                with youtube_dl.YoutubeDL(opts) as ytdl:
-                    ytdl.download([url])
-                logging.info(f'Download complete - {vid}.{ext}')
-
-                recycle.DOWNLOAD_LCK.acquire()
-                recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
-                recycle.DOWNLOAD_LCK.release()
-
-                os.remove(f'{path}/output/converting/{ext}/{vid}')
-        except Exception as e:
-            logging.exception(e)
+#
+# Multi-thread download
+#
 
 
-lck = threading.Lock()
-sem = threading.Semaphore(0)
-jobq = queue.Queue()
-dl_thread = threading.Thread(target=run)
-dl_thread.start()
+def download(jobinfo):
+    try:
+        vid, ext, url = jobinfo
+        opts = get_opts(vid, ext)
+        if not opts:
+            return
+        with youtube_dl.YoutubeDL(opts) as ytdl:
+            ytdl.download([url])
+        logging.info(f'Download complete - {vid}.{ext}')
+
+        recycle.DOWNLOAD_LCK.acquire()
+        recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
+        recycle.DOWNLOAD_LCK.release()
+
+        os.remove(f'{path}/output/converting/{ext}/{vid}')
+    except Exception as e:
+        logging.exception(e)
+
+
+threadexecuter = ThreadPoolExecutor(max_workers=MAX_WORKERTHREADS)
 
 #
 #
 #
-
-
-_ytdl = youtube_dl.YoutubeDL({
-    'noplaylist': True
-})
-DURATION_LIMIT = 600
-SUPPORTED_EXT = ('mp3', 'mp4')
 
 
 def validatevid(vid):
@@ -126,8 +117,5 @@ def validatevid(vid):
 
 
 def startDL(vid, ext):
-    lck.acquire()
-    jobq.put((vid, ext, f'https://www.youtube.com/watch?v={vid}'))
-    sem.release()
-    lck.release()
-    logging.info(f'Added to download queue - {vid}.{ext}')
+    threadexecuter.submit(
+        download, (vid, ext, f'https://www.youtube.com/watch?v={vid}'))
