@@ -107,7 +107,7 @@ def validatevid(vid):
                 'err': 'Video too long!'
             }
         try:
-            imglnk = info['thumbnails'][-2]['url']
+            imglnk = info['thumbnails'][-1]['url']
             return {
                 'ok': True,
                 'name': info['title'],

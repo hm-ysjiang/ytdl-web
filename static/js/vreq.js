@@ -3,10 +3,23 @@
     const ext = $('#action-btn').attr('ext')
 
     function showButton(btn) {
-        $('#btn-convert').css('display', 'none')
-        $('#btn-converting').css('display', 'none')
-        $('#btn-download').css('display', 'none')
-        $('#btn-' + btn).css('display', 'inline-block')
+        $('#btn-convert').attr('disabled', '')
+        $('#btn-convert').addClass('btn-primary')
+        $('#btn-download').addClass('disabled')
+        switch (btn) {
+            case 'convert':
+                $('#btn-convert').removeAttr('disabled')
+                $('#btn-convert').text('Convert ' + ext.toUpperCase())
+                break;
+            case 'converting':
+                $('#btn-convert').text('Converting...')
+                break;
+            case 'download':
+                $('#btn-convert').text('Complete!')
+                $('#btn-convert').removeClass('btn-primary')
+                $('#btn-download').removeClass('disabled')
+                break;
+        }
     }
 
     function checkConvert() {

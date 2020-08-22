@@ -21,26 +21,34 @@
         .btn-dl {
             color: white !important;
         }
+
+        .footer {
+            position: sticky;
+            bottom: 0;
+            z-index: 1020;
+            padding: 15px 0;
+            background-color: rgba(255, 255, 255, .85);
+        }
     </style>
 </head>
 
 <body>
     <script>{{errhandle|safe}}</script>
 
-    <div style="width:fit-content; margin: 0 auto;">
-        <div style="margin-top: 25px; text-align: center;">
+    <div style="width: 100%; margin: 25px auto;">
+        <div style="text-align: center; width: 80%; margin-left: auto; margin-right: auto;">
             <h2>{{vtitle}}</h1>
-                <img src="{{vimg}}">
-                <div id="action-btn" vid={{vid}} ext={{ext}} style="margin-top: 10px; text-align: center;">
-                    <button id="btn-convert" type="button" class="btn btn-primary btn-lg"
-                        style="display: none;">Convert {{EXT}}</button>
-                    <button id="btn-converting" type="button" class="btn btn-primary btn-lg" style="display: none;"
-                        disabled>Converting...</button>
-                    <a id="btn-download" class="btn btn-success btn-lg btn-dl" style="display: none;"
-                        href="/download/{{ext}}?vid={{vid}}">Download {{EXT}}</a>
-                </div>
+            <img src="{{vimg}}" style="max-width: 100%; margin-top: 20px;">
         </div>
     </div>
+
+    <nav class="navbar footer">
+        <div id="action-btn" vid={{vid}} ext={{ext}} style="text-align: center; display: inline; margin: 0 auto;">
+            <button id="btn-convert" type="button" class="btn btn-primary btn-lg" disabled>&nbsp;</button>
+            <a id="btn-download" class="btn btn-success btn-lg btn-dl disabled"
+                href="/download/{{ext}}?vid={{vid}}">Download {{EXT}}</a>
+        </div>
+    </nav>
 
     <script src="{{url_for('static', filename='js/vreq.js')}}"></script>
 </body>
