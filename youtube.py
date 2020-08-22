@@ -12,6 +12,8 @@ DURATION_LIMIT = 600
 SUPPORTED_EXT = ('mp3', 'mp4')
 # The maximum amount of workers that the thread pool can hold
 MAX_WORKERTHREADS = 10
+# To enable the embed-thumbnail opt, make sure you have applied the patch mentioned in README
+EMBED_THUMBNAIL = True
 
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -32,11 +34,13 @@ def get_opts(vid, ext):
                 {
                     'key': 'FFmpegVideoConvertor',
                     'preferedformat': 'mp4'
-                }
+                },
+                { 'key': 'FFmpegMetadata' }
             ]
         }
     elif ext == 'mp3':
         return {
+            'writethumbnail': True,
             'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
             'format': 'bestaudio/best',
             'noplaylist': True,
@@ -47,13 +51,21 @@ def get_opts(vid, ext):
                     'preferredcodec': 'mp3',
                     'preferredquality': '192'
                 },
-                # {
-                #     'key': 'FFmpegMetadata'
-                # },
-                # {
-                #     'key': 'EmbedThumbnail',
-                #     'already_have_thumbnail': True
-                # } # Google seems to be sending a wrong labeled WEBM image, which cause ffmpeg failed to embed the thumbnail, see youtube-dl #25687
+                { 'key': 'EmbedThumbnail' },
+                { 'key': 'FFmpegMetadata' }
+            ]
+        } if EMBED_THUMBNAIL else {
+            'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
+            'format': 'bestaudio/best',
+            'noplaylist': True,
+            'prefer_ffmpeg': True,
+            'postprocessors': [
+                {
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192'
+                },
+                { 'key': 'FFmpegMetadata' }
             ]
         }
 

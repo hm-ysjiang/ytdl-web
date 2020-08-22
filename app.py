@@ -82,7 +82,7 @@ def download(ext):
     if (os.path.isdir(vidpath)):
         files = next(os.walk(vidpath))[2]
         if len(files):
-            filename = files[0]
+            filename = [file for file in files if file.endswith(ext)][0]
             recycle.touch(ext, vid)
             recycle.DOWNLOAD_LCK.release()
             logging.info(f'Updated file lifetime - {vid}.{ext}')

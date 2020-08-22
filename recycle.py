@@ -39,8 +39,11 @@ def recycle():
                 ext, vid = k.split('/')
                 vidpath = f'{path}/output/file/{ext}/{vid}'
                 try:
-                    os.remove(f'{vidpath}/{next(os.walk(vidpath))[2][0]}')
-                    os.rmdir(f'{vidpath}')
+                    for root, dirs, files in os.walk(vidpath, topdown=False):
+                        for name in files:
+                            os.remove(os.path.join(root, name))
+                        for name in dirs:
+                            os.rmdir(os.path.join(root, name))
                 except Exception as e:
                     logging.exception(e)
                 logging.info(f'Removed file - {vid}.{ext}')
