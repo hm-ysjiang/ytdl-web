@@ -13,7 +13,7 @@ SUPPORTED_EXT = ('mp3', 'mp4')
 # The maximum amount of workers that the thread pool can hold
 MAX_WORKERTHREADS = 10
 # To enable the embed-thumbnail opt, make sure you have applied the patch mentioned in README
-EMBED_THUMBNAIL = True
+EMBED_THUMBNAIL = False
 
 
 path = os.path.dirname(os.path.realpath(__file__))
