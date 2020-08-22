@@ -1,20 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>YoutubeDL - Script</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <style>
+        pre {
+            margin: 25px;
+            background-color: #eaeaea;
+            width: fit-content;
+            padding: 10px;
+        }
+    </style>
 </head>
+
 <body>
-    <pre>
-        <code>
-            <div style="display: inline-flex;">
-                <span><</span>
-                <span>div id="ytdl-weblnk"></span>
-            </div>
-                <a style="color: var(--yt-spec-text-secondary);font-size: var(--ytd-user-comment_-_font-size);padding: 0 5px;" href="http://127.0.0.1:8888/vreq?vid=FR91CB5SBWU&amp;ext=mp3" target="_blank">Open ytdl-web</a>
-            </div>
-        </code>
-    </pre>
+    <div style="margin-top: 25px; padding: 0 25px;">
+        <span>We provide a script that can be used with Tampermonkey, to add a link in your youtube page, which will
+            directly open ytdl-web with video-id pre-filled for you.</span>
+        <pre>
+// ==UserScript==
+// @name         ytdl-web lnk
+// @namespace    /
+// @version      0.1
+// @description  Add a link in youtube page redirecting to ytdl-web page
+// @author       hm-ysjiang
+// @match        https://www.youtube.com/watch?v=*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    const ytdl_HOST = '127.0.0.1:8888'
+
+    var url = location.href
+
+    function detectChange() {
+        if (url != location.href) {
+            url = location.href
+            document.getElementById('ytdl-weblnk').innerHTML = '<a style="color: var(--yt-spec-text-secondary);font-size: var(--ytd-user-comment_-_font-size);padding: 0 5px;" href="http://' + ytdl_HOST + '?vid=' + url.substr(32, 11) + '" target="_blank">Open ytdl-web</a>'
+        }
+    }
+
+    function insertLnk() {
+        var infotxt = document.getElementById('info-text')
+        if (infotxt) {
+            var lnk = document.createElement('div')
+            lnk.id = 'ytdl-weblnk'
+            lnk.innerHTML = '<a style="color: var(--yt-spec-text-secondary);font-size: var(--ytd-user-comment_-_font-size);padding: 0 5px;" href="http://' + ytdl_HOST + '?vid=' + url.substr(32, 11) + '" target="_blank">Open ytdl-web</a>'
+            insertAfter(lnk, infotxt)
+            setInterval(detectChange, 1000)
+        }
+        else {
+            setTimeout(insertLnk, 1000)
+        }
+    }
+
+    function insertAfter(ele, target) {
+        var parent = target.parentNode;
+        if (parent.lastChild == target) {
+            parent.appendChild(ele);
+        }
+        else {
+            parent.insertBefore(ele, target.nextSibling);
+        }
+    }
+
+    insertLnk()
+})();
+        </pre>
+    </div>
 </body>
+
 </html>
