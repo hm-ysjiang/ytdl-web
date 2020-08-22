@@ -6,8 +6,11 @@ import recycle
 import youtube_dl
 
 
+# The maximum length of the requested video (in second)
 DURATION_LIMIT = 600
+# The supported extensions, make sure there is a corresponding YoutubeDL opt in get_opts if you add your own ones
 SUPPORTED_EXT = ('mp3', 'mp4')
+# The maximum amount of workers that the thread pool can hold
 MAX_WORKERTHREADS = 10
 
 
@@ -15,6 +18,7 @@ path = os.path.dirname(os.path.realpath(__file__))
 _ytdl = youtube_dl.YoutubeDL({
     'noplaylist': True
 })
+threadexecuter = ThreadPoolExecutor(max_workers=MAX_WORKERTHREADS)
 
 
 def get_opts(vid, ext):
@@ -70,7 +74,7 @@ def download(jobinfo):
         logging.info(f'Download complete - {vid}.{ext}')
 
         recycle.DOWNLOAD_LCK.acquire()
-        recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
+        recycle.touch(ext, vid)
     except Exception as e:
         logging.exception(e)
 
@@ -85,9 +89,6 @@ def download(jobinfo):
     finally:
         os.remove(f'{path}/output/converting/{ext}/{vid}')
         recycle.DOWNLOAD_LCK.release()
-
-
-threadexecuter = ThreadPoolExecutor(max_workers=MAX_WORKERTHREADS)
 
 #
 #

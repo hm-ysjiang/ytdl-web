@@ -11,9 +11,9 @@ logging.basicConfig(level=logging.INFO,
 app = Flask('YoutubeDL')
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-ext_opts = ''
 
-path = ''
+ext_opts = utility.get_ext_opts(youtube.SUPPORTED_EXT)
+path = os.path.dirname(os.path.realpath(__file__))
 
 
 @app.route('/')
@@ -83,7 +83,7 @@ def download(ext):
         files = next(os.walk(vidpath))[2]
         if len(files):
             filename = files[0]
-            recycle.lifemap[f'{ext}/{vid}'] = recycle.getnewlifetime()
+            recycle.touch(ext, vid)
             recycle.DOWNLOAD_LCK.release()
             logging.info(f'Updated file lifetime - {vid}.{ext}')
             return send_file(vidpath + '/' + filename, as_attachment=True)
@@ -92,8 +92,6 @@ def download(ext):
 
 
 if __name__ == '__main__':
-    path = os.path.dirname(os.path.realpath(__file__))
     utility.reset_output_directory(path, youtube.SUPPORTED_EXT)
     recycle.startGC()
-    ext_opts = utility.get_ext_opts(youtube.SUPPORTED_EXT)
     app.run(host='0.0.0.0', port=8888)
