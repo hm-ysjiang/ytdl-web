@@ -18,8 +18,14 @@ path = os.path.dirname(os.path.realpath(__file__))
 
 @app.route('/')
 def root():
+    logging.info('hi')
     vid = request.args.get('vid')
     return render_template('index.html', ext_opts=ext_opts, vid=(vid if vid else ''))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static', 'favicon.ico')
 
 
 @app.route('/script')

@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup as Soup
 from mutagen.easyid3 import EasyID3
+from mutagen.id3 import ID3, APIC
 import json
 import logging
 import os
@@ -118,3 +119,23 @@ def try_writemeta(vid, ext):
                 meta['title'] = filename[:-(len(ext)+1)]
                 meta.save()
                 logging.info(f'Metadata {info} written into {vid}.{ext}')
+
+
+def try_writecover(vid, ext):
+    if ext not in ('mp3', ):
+        return
+    filepath = os.path.join(path, 'output/file', ext, vid)
+    if os.path.isdir(filepath):
+        files = [file for file in next(os.walk(filepath))[
+            2] if file.endswith(ext)]
+        if len(files) > 0:
+            filename = files[0]
+            id3 = ID3(os.path.join(filepath, filename))
+            cover = req.get(f'https://i.ytimg.com/vi/{vid}/hqdefault.jpg')
+            id3['APIC'] = APIC(encoding=3,
+                               mime='image/jpeg',
+                               type=3, desc=u'Cover',
+                               data=cover.content
+                               )
+            id3.save()
+            logging.info(f'Written Cover into {vid}.{ext}')

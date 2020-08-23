@@ -13,8 +13,6 @@ DURATION_LIMIT = 600
 SUPPORTED_EXT = ('mp3', 'mp4')
 # The maximum amount of workers that the thread pool can hold
 MAX_WORKERTHREADS = 10
-# To enable the embed-thumbnail opt, make sure you have applied the patch mentioned in README
-EMBED_THUMBNAIL = False
 
 
 path = os.path.dirname(os.path.realpath(__file__))
@@ -40,20 +38,6 @@ def get_opts(vid, ext):
         }
     elif ext == 'mp3':
         return {
-            'writethumbnail': True,
-            'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
-            'format': 'bestaudio/best',
-            'noplaylist': True,
-            'prefer_ffmpeg': True,
-            'postprocessors': [
-                {
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192'
-                },
-                { 'key': 'EmbedThumbnail' }
-            ]
-        } if EMBED_THUMBNAIL else {
             'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
             'format': 'bestaudio/best',
             'noplaylist': True,
@@ -82,6 +66,8 @@ def download(jobinfo):
         with youtube_dl.YoutubeDL(opts) as ytdl:
             ytdl.download([url])
         logging.info(f'Download complete - {vid}.{ext}')
+        
+        utility.try_writecover(vid, ext)
         utility.try_writemeta(vid, ext)
 
         recycle.DOWNLOAD_LCK.acquire()
