@@ -30,26 +30,27 @@ def recycle():
 
     while True:
         DOWNLOAD_LCK.acquire()
-        logging.info('Start recycling')
-        kv = list(lifemap.items())
-        now = datetime.datetime.now()
-        for k, i in kv:
-            if i < now:
-                lifemap.pop(k)
-                ext, vid = k.split('/')
-                vidpath = f'{path}/output/file/{ext}/{vid}'
-                try:
-                    for root, dirs, files in os.walk(vidpath, topdown=False):
-                        for name in files:
-                            os.remove(os.path.join(root, name))
-                        for name in dirs:
-                            os.rmdir(os.path.join(root, name))
-                except Exception as e:
-                    logging.exception(e)
-                logging.info(f'Removed file - {vid}.{ext}')
+        if len(lifemap) > 0:
+            logging.info('Start recycling')
+            kv = list(lifemap.items())
+            now = datetime.datetime.now()
+            for k, i in kv:
+                if i < now:
+                    lifemap.pop(k)
+                    ext, vid = k.split('/')
+                    vidpath = f'{path}/output/file/{ext}/{vid}'
+                    try:
+                        for root, dirs, files in os.walk(vidpath, topdown=False):
+                            for name in files:
+                                os.remove(os.path.join(root, name))
+                            for name in dirs:
+                                os.rmdir(os.path.join(root, name))
+                    except Exception as e:
+                        logging.exception(e)
+                    logging.info(f'Removed file - {vid}.{ext}')
 
+            logging.info('Complete recycling')
         DOWNLOAD_LCK.release()
-        logging.info('Complete recycling')
         time.sleep(GC_INTERVAL)
 
 

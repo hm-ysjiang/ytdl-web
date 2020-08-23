@@ -3,6 +3,7 @@ import logging
 import os
 import queue
 import recycle
+import utility
 import youtube_dl
 
 
@@ -34,8 +35,7 @@ def get_opts(vid, ext):
                 {
                     'key': 'FFmpegVideoConvertor',
                     'preferedformat': 'mp4'
-                },
-                { 'key': 'FFmpegMetadata' }
+                }
             ]
         }
     elif ext == 'mp3':
@@ -51,8 +51,7 @@ def get_opts(vid, ext):
                     'preferredcodec': 'mp3',
                     'preferredquality': '192'
                 },
-                { 'key': 'EmbedThumbnail' },
-                { 'key': 'FFmpegMetadata' }
+                { 'key': 'EmbedThumbnail' }
             ]
         } if EMBED_THUMBNAIL else {
             'outtmpl': path + '/output/file/mp3/' + vid + '/' + '%(title)s.%(ext)s',
@@ -64,8 +63,7 @@ def get_opts(vid, ext):
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
                     'preferredquality': '192'
-                },
-                { 'key': 'FFmpegMetadata' }
+                }
             ]
         }
 
@@ -84,6 +82,7 @@ def download(jobinfo):
         with youtube_dl.YoutubeDL(opts) as ytdl:
             ytdl.download([url])
         logging.info(f'Download complete - {vid}.{ext}')
+        utility.try_writemeta(vid, ext)
 
         recycle.DOWNLOAD_LCK.acquire()
         recycle.touch(ext, vid)
@@ -91,7 +90,7 @@ def download(jobinfo):
         logging.exception(e)
 
         recycle.DOWNLOAD_LCK.acquire()
-        lifemap.pop(k)
+        recycle.lifemap.pop(f'{ext}/{vid}')
         vidpath = f'{path}/output/file/{ext}/{vid}'
         try:
             os.remove(f'{vidpath}/{next(os.walk(vidpath))[2][0]}')

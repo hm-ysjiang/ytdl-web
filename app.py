@@ -80,13 +80,15 @@ def download(ext):
     vidpath = f'{path}/output/file/{ext}/{vid}'
     recycle.DOWNLOAD_LCK.acquire()
     if (os.path.isdir(vidpath)):
-        files = next(os.walk(vidpath))[2]
+        files = [file for file in next(os.walk(vidpath))[2] if file.endswith(ext)]
         if len(files):
-            filename = [file for file in files if file.endswith(ext)][0]
+            filename = files[0]
             recycle.touch(ext, vid)
             recycle.DOWNLOAD_LCK.release()
             logging.info(f'Updated file lifetime - {vid}.{ext}')
-            return send_file(vidpath + '/' + filename, as_attachment=True)
+            response = make_response(send_from_directory(vidpath, filename, as_attachment=True))
+            response.headers['Cache-Control'] = 'no-store'
+            return response
     recycle.DOWNLOAD_LCK.release()
     return redirect(url_for('vreq', vid=vid, ext=ext))
 
