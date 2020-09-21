@@ -107,16 +107,14 @@ def try_writemeta(vid, ext):
             if ext in ('mp3', ):
                 logging.info(f'Trying to write metadata to {vid}.{ext}')
                 info = get_raw_ytinfo(vid)
-                if info is None:
-                    logging.info('Metadata not found, skipping')
-                    return
                 meta = EasyID3(os.path.join(filepath, filename))
-                if info['artist']:
-                    meta['artist'] = info['artist']
-                    meta['albumartist'] = info['artist']
-                if info['album']:
-                    meta['album'] = info['album']
                 meta['title'] = filename[:-(len(ext)+1)]
+                if info is not None:
+                    if info['artist']:
+                        meta['artist'] = info['artist']
+                        meta['albumartist'] = info['artist']
+                    if info['album']:
+                        meta['album'] = info['album']
                 meta.save()
                 logging.info(f'Metadata {info} written into {vid}.{ext}')
 
